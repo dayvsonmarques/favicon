@@ -168,12 +168,17 @@ class FaviconGenerator
      * Validation and installation defaults.
      * @param string $icon
      * @param boolean $created
+     * @param string $dirRoot
      * @return void
      * @access public
      * @final
      */
-    final public function __construct($icon = '', $created = false)
+    final public function __construct($icon = '', $created = false, $dirRoot = '')
     {
+        if(!empty($dirRoot)){
+            $this->root = $dirRoot;
+        }
+
         if (empty($icon)) {
             $icon = "{$this->root}/favicon/.original";
         }
@@ -186,7 +191,7 @@ class FaviconGenerator
         }
 
         $this->created = $created;
-        $this->root = php_sapi_name() == 'cli' ? __DIR__ : $_SERVER['DOCUMENT_ROOT'];
+        //$this->root = php_sapi_name() == 'cli' ? __DIR__ : $_SERVER['DOCUMENT_ROOT'];
 
         if (file_exists("{$this->root}/favicon/.settings")) {
             $this->settings = json_decode(file_get_contents("{$this->root}/favicon/.settings"), true);
@@ -203,7 +208,7 @@ class FaviconGenerator
         ) {
             @mkdir("{$this->root}/favicon", 0755);
             @copy($icon, "{$this->root}/favicon/.original");
-            $this->created == true;
+            $this->created = true;
         }
     }
 
@@ -216,6 +221,15 @@ class FaviconGenerator
     final public function __destruct()
     {
         file_put_contents("{$this->root}/favicon/.settings", json_encode($this->settings));
+    }
+
+    /**
+     * setRoot
+     * @param $directory
+     * @final
+     */
+    final public function setRootDirToSave($directory){
+        $this->root = $directory;
     }
 
     /**
@@ -242,7 +256,7 @@ class FaviconGenerator
         }
 
         if (isset($this->settings['compression']) && $this->settings['compression'] != $compression) {
-            $this->created == true;
+            $this->created = true;
             $this->settings['compression'] = $compression;
         }
 
@@ -283,7 +297,7 @@ class FaviconGenerator
         }
 
         if (isset($this->settings['cropmethod']) && $this->settings['cropmethod'] != $method) {
-            $this->created == true;
+            $this->created = true;
             $this->settings['cropmethod'] = $method;
         }
 
@@ -331,7 +345,7 @@ class FaviconGenerator
                 array_key_exists($key, $this->settings) === false ||
                 (array_key_exists($key, $this->settings) && $this->settings[$key] !== $value)
             ) {
-                $this->created == true;
+                $this->created = true;
                 $this->settings = array_merge($this->settings, $config);
                 break;
             }
